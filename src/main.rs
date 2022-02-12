@@ -13,8 +13,6 @@ use piston::{
     event_loop::*, Button, ButtonEvent, ButtonState, Key, RenderArgs, RenderEvent, UpdateEvent,
 };
 use rand::Rng;
-use std::collections::LinkedList;
-use std::iter::FromIterator;
 
 // Window configurations
 const WINDOW_WIDTH: u32 = 800;
