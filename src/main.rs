@@ -23,10 +23,13 @@ const BACKGROUND_COLOR: Color = TEAL;
 const SNAKE_COLOR: Color = NAVY;
 const SNAKE_SIZE: f64 = 20_f64;
 
+// Food Configuration
 const FOOD_COLOR: Color = RED;
 const FOOD_SIZE: f64 = 10_f64;
 
+// Font configuration
 const POINT_FONT_SIZE: u32 = 20;
+const FONT_PATH: &str = "src/assets/Roboto/Roboto-Bold.ttf";
 
 #[derive(Clone, PartialEq)]
 enum Direction {
@@ -129,8 +132,7 @@ impl Point {
         let pos_y = (POINT_FONT_SIZE - 0) as f64;
 
         // Load Font
-        let font = "src/assets/Roboto/Roboto-Bold.ttf";
-        let mut glyphs = GlyphCache::new(font, (), TextureSettings::new()).unwrap();
+        let mut glyphs = GlyphCache::new(FONT_PATH, (), TextureSettings::new()).unwrap();
 
         gl.draw(args.viewport(), |c, gl| {
             let transform = c.transform;
@@ -148,7 +150,6 @@ impl Point {
 }
 
 struct Snake {
-    // body: LinkedList<(i32, i32)>,
     body: Vec<(i32, i32)>,
     dir: Direction,
 }
