@@ -3,10 +3,10 @@ extern crate opengl_graphics;
 extern crate piston;
 
 use glutin_window::GlutinWindow;
-use graphics::Transformed;
 use graphics::color::{BLACK, NAVY, RED, TEAL};
 use graphics::glyph_cache::rusttype::GlyphCache;
 use graphics::types::Color;
+use graphics::Transformed;
 use opengl_graphics::{GlGraphics, OpenGL, TextureSettings};
 use piston::window::WindowSettings;
 use piston::{
@@ -107,7 +107,7 @@ impl Food {
             self.pos_x = pos_x;
             self.pos_y = pos_y;
 
-            point.food_eaten += 1; 
+            point.food_eaten += 1;
         }
     }
 }
@@ -125,7 +125,7 @@ impl Point {
 
         let string_length = string.len() as u32 * POINT_FONT_SIZE;
 
-        let pos_x =  (WINDOW_WIDTH - string_length) as f64;
+        let pos_x = (WINDOW_WIDTH - string_length) as f64;
         let pos_y = (POINT_FONT_SIZE - 0) as f64;
 
         // Load Font
@@ -139,7 +139,7 @@ impl Point {
                     &string,
                     &mut glyphs,
                     &c.draw_state,
-                    transform.trans(pos_x, pos_y as f64 ),
+                    transform.trans(pos_x, pos_y as f64),
                     gl,
                 )
                 .unwrap();
@@ -203,7 +203,7 @@ fn main() {
             dir: Direction::Right,
         },
         food: Food {
-            pos_x: rand::thread_rng().gen_range(1,  WINDOW_WIDTH/ 20) as i32,
+            pos_x: rand::thread_rng().gen_range(1, WINDOW_WIDTH / 20) as i32,
             pos_y: rand::thread_rng().gen_range(1, WINDOW_HEIGHT / 20) as i32,
         },
         point: Point { food_eaten: 0 },
