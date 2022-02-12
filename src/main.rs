@@ -94,7 +94,7 @@ impl Food {
     }
 
     fn update(&mut self, snake: &mut Snake, point: &mut Point) {
-        let snake_head = (*snake.body.front().expect("Snake has no body")).clone();
+        let snake_head = (*snake.body.first().expect("Snake has no body")).clone();
 
         let snake_x = snake_head.0;
         let snake_y = snake_head.1;
@@ -104,7 +104,7 @@ impl Food {
             let pos_x = rand::thread_rng().gen_range(1, WINDOW_HEIGHT / 20) as i32;
             let pos_y = rand::thread_rng().gen_range(1, WINDOW_WIDTH / 20) as i32;
 
-            snake.body.push_back(snake_head);
+            snake.body.insert(0, snake_head);
 
             self.pos_x = pos_x;
             self.pos_y = pos_y;
@@ -150,7 +150,8 @@ impl Point {
 }
 
 struct Snake {
-    body: LinkedList<(i32, i32)>,
+    // body: LinkedList<(i32, i32)>,
+    body: Vec<(i32, i32)>,
     dir: Direction,
 }
 
@@ -173,13 +174,7 @@ impl Snake {
     }
 
     fn update(&mut self) {
-        let mut new_head = (*self.body.front().expect("Snake has no body")).clone();
-
-        // let body_minus_head = self.body.(0);
-
-        // if body_minus_head.contains(&new_head){
-        //     println!("TOUCHED BODY");
-        // }
+        let mut new_head = (*self.body.first().expect("Snake has no body")).clone();
 
         match self.dir {
             Direction::Left => new_head.0 -= 1,
@@ -189,8 +184,8 @@ impl Snake {
             Direction::Down => new_head.1 += 1,
         }
 
-        self.body.push_front(new_head);
-        self.body.pop_back().unwrap();
+        self.body.insert(0, new_head);
+        self.body.pop().unwrap();
     }
 }
 
@@ -206,7 +201,7 @@ fn main() {
     let mut game = Game {
         gl: GlGraphics::new(opengl),
         snake: Snake {
-            body: LinkedList::from_iter((vec![(0, 0), (0, 1)]).into_iter()),
+            body: vec![(0, 0), (0, 1)],
             dir: Direction::Right,
         },
         food: Food {
