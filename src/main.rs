@@ -10,7 +10,8 @@ use graphics::Transformed;
 use opengl_graphics::{GlGraphics, OpenGL, TextureSettings};
 use piston::window::WindowSettings;
 use piston::{
-    event_loop::*, Button, ButtonEvent, ButtonState, Key, RenderArgs, RenderEvent, UpdateEvent,
+    event_loop::*, Button, ButtonEvent, ButtonState, Event, Key, RenderArgs, RenderEvent,
+    UpdateEvent,
 };
 use rand::Rng;
 
@@ -39,26 +40,37 @@ enum Direction {
     Down,
 }
 
+#[derive(Clone, PartialEq)]
+enum GameSate {
+    Play,
+    Pause,
+}
+
 struct Game {
     gl: GlGraphics,
     snake: Snake,
     food: Food,
     point: Point,
+    state: GameSate,
 }
 
 impl Game {
     fn render(&mut self, args: &RenderArgs) {
-        self.gl.draw(args.viewport(), |_c, gl| {
-            graphics::clear(BACKGROUND_COLOR, gl);
-        });
-        self.snake.render(&mut self.gl, args);
-        self.food.render(&mut self.gl, args);
-        self.point.render(&mut self.gl, args)
+        if &self.state == &GameSate::Play {
+            self.gl.draw(args.viewport(), |_c, gl| {
+                graphics::clear(BACKGROUND_COLOR, gl);
+            });
+            self.snake.render(&mut self.gl, args);
+            self.food.render(&mut self.gl, args);
+            self.point.render(&mut self.gl, args)
+        }
     }
 
     fn update(&mut self) {
-        self.snake.update();
-        self.food.update(&mut self.snake, &mut self.point);
+        if &self.state == &GameSate::Play {
+            self.snake.update(&mut self.state);
+            self.food.update(&mut self.snake, &mut self.point);
+        }
     }
 
     fn pressed(&mut self, btn: &Button) {
@@ -177,11 +189,33 @@ impl Snake {
         })
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, game_state: &mut GameSate) {
         let mut new_head = *self.body.first().expect("Snake has no body");
 
         if new_head.2 == PURPLE {
             new_head.2 = SNAKE_COLOR;
+        }
+
+        // Check if the head is still in the window
+        let is_outside = new_head.0 > (WINDOW_WIDTH / 20).try_into().unwrap()
+            || (new_head.0 < 0 || new_head.1 < 0)
+            || new_head.1 > (WINDOW_HEIGHT / 20).try_into().unwrap();
+
+        if is_outside {
+            println!("SNAKE WENT OUTSIDE, YOU LOOSED");
+            *game_state = GameSate::Pause;
+        }
+
+        if self.body.len() > 5 {
+            let body_without_head = vec![&self.body[1..]];
+
+            if body_without_head
+                .iter()
+                .all(|&element| element.contains(&new_head))
+            {
+                println!("SNAKE BIT ITSELF, YOU LOOSED");
+                *game_state = GameSate::Pause;
+            }
         }
 
         match self.dir {
@@ -206,6 +240,7 @@ fn main() {
         .unwrap();
 
     let mut game = Game {
+        state: GameSate::Play,
         gl: GlGraphics::new(opengl),
         snake: Snake {
             body: vec![
