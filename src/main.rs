@@ -44,6 +44,7 @@ enum Direction {
 enum GameSate {
     Play,
     Pause,
+    End,
 }
 
 struct Game {
@@ -75,6 +76,16 @@ impl Game {
 
     fn pressed(&mut self, btn: &Button) {
         let last_direction = self.snake.dir.clone();
+
+        if btn == &Button::Keyboard(Key::P) {
+            self.state = if self.state == GameSate::Pause {
+                GameSate::Play
+            } else if self.state == GameSate::Play {
+                GameSate::Pause
+            } else {
+                self.state.clone()
+            }
+        }
 
         self.snake.dir = match btn {
             &Button::Keyboard(Key::Up) if last_direction.ne(&Direction::Down) => Direction::Up,
@@ -203,7 +214,7 @@ impl Snake {
 
         if is_outside {
             println!("SNAKE WENT OUTSIDE, YOU LOOSED");
-            *game_state = GameSate::Pause;
+            *game_state = GameSate::End;
         }
 
         if self.body.len() > 5 {
@@ -214,7 +225,7 @@ impl Snake {
                 .all(|&element| element.contains(&new_head))
             {
                 println!("SNAKE BIT ITSELF, YOU LOOSED");
-                *game_state = GameSate::Pause;
+                *game_state = GameSate::End;
             }
         }
 
