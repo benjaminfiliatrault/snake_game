@@ -10,7 +10,7 @@ use graphics::Transformed;
 use opengl_graphics::{GlGraphics, OpenGL, TextureSettings};
 use piston::window::WindowSettings;
 use piston::{
-    event_loop::*, Button, ButtonEvent, ButtonState, Event, Key, RenderArgs, RenderEvent,
+    event_loop::*, Button, ButtonEvent, ButtonState, Key, RenderArgs, RenderEvent,
     UpdateEvent,
 };
 use rand::Rng;
@@ -125,12 +125,20 @@ impl Food {
 
         // Head eaten the apple/food
         if snake_x == self.pos_x && snake_y == self.pos_y {
-            let pos_x = rand::thread_rng().gen_range(1, WINDOW_HEIGHT / 20) as i32;
-            let pos_y = rand::thread_rng().gen_range(1, WINDOW_WIDTH / 20) as i32;
+            let mut pos_x = rand::thread_rng().gen_range(1, WINDOW_HEIGHT / 20) as i32;
+            let mut pos_y = rand::thread_rng().gen_range(1, WINDOW_WIDTH / 20) as i32;
+
+            for snake_body_part in &snake.body {
+                while snake_body_part.0 == pos_x && snake_body_part.1 == pos_y {
+                    pos_x = rand::thread_rng().gen_range(1, WINDOW_HEIGHT / 20) as i32;
+                    pos_y = rand::thread_rng().gen_range(1, WINDOW_WIDTH / 20) as i32;
+                }
+            }
 
             snake_head.2 = PURPLE;
 
             snake.body.insert(1, snake_head);
+
 
             self.pos_x = pos_x;
             self.pos_y = pos_y;
@@ -153,8 +161,8 @@ impl Point {
 
         let string_length = string.len() as u32 * POINT_FONT_SIZE;
 
-        let pos_x = (WINDOW_WIDTH - string_length) as f64;
-        let pos_y = (POINT_FONT_SIZE - 0) as f64;
+        let pos_x = string_length as f64;
+        let pos_y = POINT_FONT_SIZE as f64;
 
         // Load Font
         let mut glyphs = GlyphCache::new(FONT_PATH, (), TextureSettings::new()).unwrap();
@@ -220,12 +228,11 @@ impl Snake {
         if self.body.len() > 5 {
             let body_without_head = vec![&self.body[1..]];
 
-            if body_without_head
-                .iter()
-                .all(|&element| element.contains(&new_head))
-            {
-                println!("SNAKE BIT ITSELF, YOU LOOSED");
-                *game_state = GameSate::End;
+            for body_part in body_without_head {
+                if body_part.contains(&new_head){
+                    println!("SNAKE BIT ITSELF, YOU LOOSED");
+                    *game_state = GameSate::End;
+                }
             }
         }
 
