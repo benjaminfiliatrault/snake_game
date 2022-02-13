@@ -3,7 +3,7 @@ extern crate opengl_graphics;
 extern crate piston;
 
 use glutin_window::GlutinWindow;
-use graphics::color::{BLACK, NAVY, RED, TEAL};
+use graphics::color::{BLACK, NAVY, PURPLE, RED, TEAL};
 use graphics::glyph_cache::rusttype::GlyphCache;
 use graphics::types::Color;
 use graphics::Transformed;
@@ -95,7 +95,7 @@ impl Food {
     }
 
     fn update(&mut self, snake: &mut Snake, point: &mut Point) {
-        let snake_head = (*snake.body.first().expect("Snake has no body")).clone();
+        let mut snake_head = *snake.body.first().expect("Snake has no body");
 
         let snake_x = snake_head.0;
         let snake_y = snake_head.1;
@@ -105,7 +105,9 @@ impl Food {
             let pos_x = rand::thread_rng().gen_range(1, WINDOW_HEIGHT / 20) as i32;
             let pos_y = rand::thread_rng().gen_range(1, WINDOW_WIDTH / 20) as i32;
 
-            snake.body.insert(0, snake_head);
+            snake_head.2 = PURPLE;
+
+            snake.body.insert(1, snake_head);
 
             self.pos_x = pos_x;
             self.pos_y = pos_y;
@@ -150,17 +152,20 @@ impl Point {
 }
 
 struct Snake {
-    body: Vec<(i32, i32)>,
+    body: Vec<(i32, i32, Color)>,
     dir: Direction,
 }
 
 impl Snake {
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
-        let squares: Vec<graphics::types::Rectangle> = self
+        let squares: Vec<(graphics::types::Rectangle, Color)> = self
             .body
             .iter()
-            .map(|&(x, y)| {
-                graphics::rectangle::square((x * 20) as f64, (y * 20) as f64, SNAKE_SIZE)
+            .map(|&(x, y, color)| {
+                (
+                    graphics::rectangle::square((x * 20) as f64, (y * 20) as f64, SNAKE_SIZE),
+                    color,
+                )
             })
             .collect();
 
@@ -168,12 +173,16 @@ impl Snake {
             let transform = c.transform;
             squares
                 .into_iter()
-                .for_each(|square| graphics::rectangle(SNAKE_COLOR, square, transform, gl))
+                .for_each(|square| graphics::rectangle(square.1, square.0, transform, gl))
         })
     }
 
     fn update(&mut self) {
-        let mut new_head = (*self.body.first().expect("Snake has no body")).clone();
+        let mut new_head = *self.body.first().expect("Snake has no body");
+
+        if new_head.2 == PURPLE {
+            new_head.2 = SNAKE_COLOR;
+        }
 
         match self.dir {
             Direction::Left => new_head.0 -= 1,
@@ -182,9 +191,8 @@ impl Snake {
             Direction::Up => new_head.1 -= 1,
             Direction::Down => new_head.1 += 1,
         }
-
         self.body.insert(0, new_head);
-        self.body.pop().unwrap();
+        self.body.pop();
     }
 }
 
@@ -200,7 +208,11 @@ fn main() {
     let mut game = Game {
         gl: GlGraphics::new(opengl),
         snake: Snake {
-            body: vec![(0, 0), (0, 1)],
+            body: vec![
+                (0, 0, SNAKE_COLOR),
+                (1, 0, SNAKE_COLOR),
+                (2, 0, SNAKE_COLOR),
+            ],
             dir: Direction::Right,
         },
         food: Food {
